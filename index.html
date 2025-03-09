@@ -1,11 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dodge the Blocks - Web Version</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Space Dodge - Web Version</title>
     <style>
+        #gameOver {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
         canvas {
             border: 2px solid white;
             background: black;
+            max-width: 100%;
+            
         }
         body {
             display: flex;
@@ -14,16 +24,17 @@
             background: #1a1a1a;
             color: white;
             font-family: Arial, sans-serif;
+            touch-action: none;
         }
         button {
-            padding: 10px 20px;
-            font-size: 18px;
             margin: 10px;
             cursor: pointer;
             background: #4CAF50;
             border: none;
             color: white;
             border-radius: 5px;
+            padding: 15px 30px;
+            font-size: 20px;
         }
         #gameOver {
             position: absolute;
@@ -32,7 +43,7 @@
     </style>
 </head>
 <body>
-    <h1>Dodge the Blocks!</h1>
+    <h1>Space Dodge!</h1>
     <div id="scorePanel">High Score: <span id="highScore">0</span> | Score: <span id="score">0</span></div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <button id="startButton">Start Game</button>
@@ -43,18 +54,11 @@
         <button id="restartButton">Play Again</button>
     </div>
 
+    <!-- Audio Elements -->
+    <audio id="explosionSound" src="assets/sounds/explosion-42132.wav"></audio>
+    <audio id="backgroundMusic" loop src="assets/sounds/that-game-arcade-236111.mp3"></audio>
+
     <script>
-        // Preloader
-let assets = {
-    playerImg: new Image(),
-    blockImg: new Image()
-};
-
-window.onload = function() {
-    assets.playerImg.src = 'ball.png';
-    assets.blockImg.src = 'cartoon.png';
-};
-
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startButton = document.getElementById('startButton');
@@ -63,12 +67,22 @@ window.onload = function() {
         const scoreElement = document.getElementById('score');
         const highScoreElement = document.getElementById('highScore');
 
+        // Game assets
+        const assets = {
+            player: new Image(),
+            meteor: new Image()
+        };
+
+        // Load assets
+        assets.player.src = 'assets/images/cartoon.png';
+        assets.meteor.src = 'assets/images/ball.png';
+
         // Game state
         let score = 0;
         let highScore = localStorage.getItem('highScore') || 0;
         let gameOver = false;
         let animationFrame;
-        const BLOCK_SIZE = 30;
+        const BLOCK_SIZE = 60;
         const PLAYER_SIZE = 50;
         
         // Player object
@@ -99,6 +113,12 @@ window.onload = function() {
             if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
         });
 
+        function playSound(id) {
+            const sound = document.getElementById(id);
+            sound.currentTime = 0;
+            sound.play();
+        }
+
         function initializeGame() {
             // Reset game state
             score = 0;
@@ -111,7 +131,8 @@ window.onload = function() {
             gameOverDiv.style.display = 'none';
             startButton.style.display = 'none';
             
-            // Start game loop
+            // Start music and game loop
+            playSound('backgroundMusic');
             gameLoop();
         }
 
@@ -139,6 +160,7 @@ window.onload = function() {
         function endGame() {
             gameOver = true;
             cancelAnimationFrame(animationFrame);
+            document.getElementById('backgroundMusic').pause();
             
             // Update high score
             if (score > highScore) {
@@ -146,7 +168,8 @@ window.onload = function() {
                 localStorage.setItem('highScore', highScore);
             }
             
-            // Show game over screen
+            // Show game over screen and play explosion
+            playSound('explosionSound');
             gameOverDiv.style.display = 'block';
             document.getElementById('finalScore').textContent = score;
             document.getElementById('finalHighScore').textContent = highScore;
@@ -186,13 +209,23 @@ window.onload = function() {
             });
 
             // Draw player
-            ctx.fillStyle = 'blue';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.drawImage(
+                assets.player,
+                player.x,
+                player.y,
+                player.width,
+                player.height
+            );
 
             // Draw blocks
-            ctx.fillStyle = 'red';
             blocks.forEach(block => {
-                ctx.fillRect(block.x, block.y, block.width, block.height);
+                ctx.drawImage(
+                    assets.meteor,
+                    block.x,
+                    block.y,
+                    block.width,
+                    block.height
+                );
             });
 
             if (!gameOver) {
