@@ -44,6 +44,17 @@
     </div>
 
     <script>
+        // Preloader
+let assets = {
+    playerImg: new Image(),
+    blockImg: new Image()
+};
+
+window.onload = function() {
+    assets.playerImg.src = 'ball.png';
+    assets.blockImg.src = 'cartoon.png';
+};
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startButton = document.getElementById('startButton');
