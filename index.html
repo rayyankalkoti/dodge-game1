@@ -54,14 +54,12 @@
         background: rgba(0, 0, 0, 0.9); /* Dark overlay */
         display: none;        /* Hidden by default */
         z-index: 100;
-        /* Flex layout for centering text */
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        /* Optional: some padding or styling for text */
         color: white;
-        border-radius: 0;     /* Remove corner rounding if you like */
+        border-radius: 0;
       }
       
       /* Score Display */
@@ -73,6 +71,7 @@
   </head>
   <body>
     <h1>Space Dodge!</h1>
+    <!-- Lives Display -->
     <div id="livesPanel"></div>
     <div id="scorePanel">
       High Score: <span id="highScore">0</span> | Score: <span id="score">0</span>
@@ -92,7 +91,7 @@
     <audio id="backgroundMusic" loop src="assets/sounds/that-game-arcade-236111.mp3"></audio>
     
     <script>
-      // Game Configuration
+      // Game Configuration & Global Variables
       const canvas = document.getElementById('gameCanvas');
       const ctx = canvas.getContext('2d');
       const startButton = document.getElementById('startButton');
@@ -101,25 +100,9 @@
       const scoreElement = document.getElementById('score');
       const highScoreElement = document.getElementById('highScore');
       
-      // Touch Handling Variables
-      let touchStartX = null;
-      let touchStartY = null;
-      let touchOffsetX = 0;
-      let touchOffsetY = 0;
-      
-      // Game Assets
-      const assets = {
-        player: new Image(),
-        meteor: new Image()
-      };
-      
-      // Load Assets
-      assets.player.src = 'assets/images/cartoon.png';
-      assets.meteor.src = 'assets/images/ball.png';
-      
-      // Game State
       let score = 0;
       let highScore = localStorage.getItem('highScore') || 0;
+      let lives = 3; // Set player lives to 3
       let gameOver = false;
       let animationFrame;
       
@@ -140,26 +123,28 @@
       // Blocks Array
       let blocks = [];
       
-      // Input Handling
-      const keys = {
-        ArrowLeft: false,
-        ArrowRight: false,
-        ArrowUp: false,
-        ArrowDown: false
+      // Touch Handling Variables
+      let touchStartX = null;
+      let touchStartY = null;
+      let touchOffsetX = 0;
+      let touchOffsetY = 0;
+      
+      // Game Assets
+      const assets = {
+        player: new Image(),
+        meteor: new Image()
       };
+      // Load Assets (adjust these paths if necessary)
+      assets.player.src = 'assets/images/cartoon.png';
+      assets.meteor.src = 'assets/images/ball.png';
       
       // Event Listeners
       function setupEventListeners() {
-        // Keyboard Events
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('keyup', handleKeyUp);
-      
-        // Touch Events
         canvas.addEventListener('touchstart', handleTouchStart);
         canvas.addEventListener('touchmove', handleTouchMove);
         canvas.addEventListener('touchend', handleTouchEnd);
-      
-        // Button Events
         startButton.addEventListener('click', initializeGame);
         restartButton.addEventListener('click', restartGame);
       }
@@ -178,12 +163,8 @@
         if (touchStartX !== null && touchStartY !== null) {
           const touchX = e.touches[0].clientX;
           const touchY = e.touches[0].clientY;
-      
-          // Calculate new positions based on swipe distance
           const moveX = touchOffsetX + (touchX - touchStartX);
           const moveY = touchOffsetY + (touchY - touchStartY);
-      
-          // Bound the player in both X and Y directions
           player.x = Math.max(0, Math.min(canvas.width - player.width, moveX));
           player.y = Math.max(0, Math.min(canvas.height - player.height, moveY));
         }
@@ -195,39 +176,30 @@
       }
       
       // Keyboard Handlers
+      const keys = {
+        ArrowLeft: false,
+        ArrowRight: false,
+        ArrowUp: false,
+        ArrowDown: false
+      };
+      
       function handleKeyDown(e) {
         e.preventDefault();
         switch (e.code) {
-          case "ArrowLeft":
-            keys.ArrowLeft = true;
-            break;
-          case "ArrowRight":
-            keys.ArrowRight = true;
-            break;
-          case "ArrowUp":
-            keys.ArrowUp = true;
-            break;
-          case "ArrowDown":
-            keys.ArrowDown = true;
-            break;
+          case "ArrowLeft": keys.ArrowLeft = true; break;
+          case "ArrowRight": keys.ArrowRight = true; break;
+          case "ArrowUp": keys.ArrowUp = true; break;
+          case "ArrowDown": keys.ArrowDown = true; break;
         }
       }
       
       function handleKeyUp(e) {
         e.preventDefault();
         switch (e.code) {
-          case "ArrowLeft":
-            keys.ArrowLeft = false;
-            break;
-          case "ArrowRight":
-            keys.ArrowRight = false;
-            break;
-          case "ArrowUp":
-            keys.ArrowUp = false;
-            break;
-          case "ArrowDown":
-            keys.ArrowDown = false;
-            break;
+          case "ArrowLeft": keys.ArrowLeft = false; break;
+          case "ArrowRight": keys.ArrowRight = false; break;
+          case "ArrowUp": keys.ArrowUp = false; break;
+          case "ArrowDown": keys.ArrowDown = false; break;
         }
       }
       
@@ -242,38 +214,27 @@
       
       function resetGameState() {
         score = 0;
+        lives = 3; // Reset lives to 3
         gameOver = false;
         blocks = [];
         player.x = canvas.width / 2 - PLAYER_SIZE / 2;
         player.y = canvas.height - 100;
         updateScoreDisplay();
+        updateLivesDisplay();
       }
       
       function updatePlayerPosition() {
-        if (keys.ArrowLeft) {
-          player.x = Math.max(0, player.x - PLAYER_SPEED);
-        }
-        if (keys.ArrowRight) {
-          player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
-        }
-        if (keys.ArrowUp) {
-          player.y = Math.max(0, player.y - PLAYER_SPEED);
-        }
-        if (keys.ArrowDown) {
-          player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
-        }
+        if (keys.ArrowLeft) player.x = Math.max(0, player.x - PLAYER_SPEED);
+        if (keys.ArrowRight) player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
+        if (keys.ArrowUp) player.y = Math.max(0, player.y - PLAYER_SPEED);
+        if (keys.ArrowDown) player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
       }
       
       function gameLoop() {
         if (gameOver) return;
-      
         updatePlayerPosition();
         updateBlocks();
         checkCollisions();
-      
-        // Increment score based on survival time
-        
-      
         render();
         animationFrame = requestAnimationFrame(gameLoop);
       }
@@ -288,39 +249,26 @@
             height: BLOCK_SIZE
           });
         }
-        // Move blocks and remove off-screen blocks
+        // Move blocks and remove off-screen blocks (increment score for each removed block)
         blocks = blocks.filter(block => {
           block.y += 1;
           if (block.y > canvas.height) {
-            score++;               // Increment score by 1 for this block
+            score++;
             updateScoreDisplay();
-            
             return false;
           }
           return true;
         });
       }
-
-      function updateLivesDisplay() {
-        const livesPanel = document.getElementById('livesPanel');
-        livesPanel.innerHTML = ""; // Clear previous hearts
-        for (let i = 0; i < lives; i++) {
-          // You can also use an <img> tag if you have a heart image
-          livesPanel.innerHTML += "❤️";  
-        }
-      }
-      
       
       function checkCollisions() {
         blocks.forEach((block, index) => {
           if (isColliding(player, block)) {
-            // Remove the meteor (so it doesn't hit repeatedly)
+            // Remove the meteor to prevent repeated collisions
             blocks.splice(index, 1);
-            
             // Decrement lives and update the UI
             lives--;
             updateLivesDisplay();
-            
             // End game if no lives remain
             if (lives <= 0) {
               endGame();
@@ -328,19 +276,6 @@
           }
         });
       }
-
-      function resetGameState() {
-        score = 0;
-        lives = 5; // Reset lives
-        gameOver = false;
-        blocks = [];
-        player.x = canvas.width / 2 - PLAYER_SIZE / 2;
-        player.y = canvas.height - 100;
-        updateScoreDisplay();
-        updateLivesDisplay();  // Update the hearts display
-      }
-      
-      
       
       function isColliding(rect1, rect2) {
         return rect1.x < rect2.x + rect2.width &&
@@ -363,19 +298,13 @@
         cancelAnimationFrame(animationFrame);
         document.getElementById('backgroundMusic').pause();
         playSound('explosionSound');
-      
-        // Remove meteors from the screen
         blocks = [];
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-        // Update High Score
         if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('highScore', highScore);
+          highScore = score;
+          localStorage.setItem('highScore', highScore);
         }
-      
-        // Show Game Over Screen
-        gameOverDiv.style.display = 'flex'; // If using the new flex CSS
+        gameOverDiv.style.display = 'flex';
         document.getElementById('finalScore').textContent = score;
         document.getElementById('finalHighScore').textContent = highScore;
       }
@@ -397,12 +326,17 @@
         highScoreElement.textContent = highScore;
       }
       
+      function updateLivesDisplay() {
+        const livesPanel = document.getElementById('livesPanel');
+        livesPanel.innerHTML = "";
+        for (let i = 0; i < lives; i++) {
+          livesPanel.innerHTML += "❤️";
+        }
+      }
+      
       // Initialize Game
       setupEventListeners();
       highScoreElement.textContent = highScore;
-
-      
-
     </script>
   </body>
 </html>
