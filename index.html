@@ -108,7 +108,7 @@
       
       let score = 0;
       let highScore = localStorage.getItem('highScore') || 0;
-      let lives = 8; // Set player lives to 3
+      let lives = 1000; // Set player lives to 3
       let gameOver = false;
       let animationFrame;
       
@@ -224,7 +224,7 @@
       // Reset game state: score, lives, blocks, player position, update displays
       function resetGameState() {
         score = 0;
-        lives = 8;
+        lives = 1000;
         gameOver = false;
         blocks = [];
         player.x = canvas.width / 2 - PLAYER_SIZE / 2;
