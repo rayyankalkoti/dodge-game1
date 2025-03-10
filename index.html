@@ -1,322 +1,378 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Space Dodge - Mobile Version</title>
     <style>
-        /* Reset and Base Styles */
-        html, body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100%;
-            touch-action: none;
-        }
-
-        /* Game Container */
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #1a1a1a;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-
-        /* Canvas Styling */
-        canvas {
-            border: 2px solid white;
-            background: black;
-            max-width: 100%;
-            touch-action: none;
-        }
-
-        /* Game Controls */
-        button {
-            padding: 15px 30px;
-            font-size: 20px;
-            margin: 10px;
-            cursor: pointer;
-            background: #4CAF50;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            touch-action: manipulation;
-        }
-
-        /* Game Over Screen */
-        #gameOver {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            display: none;
-            z-index: 100;
-        }
-
-        /* Score Display */
-        #scorePanel {
-            font-size: 18px;
-            margin: 10px 0;
-        }
+      /* Reset and Base Styles */
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        touch-action: none;
+      }
+      
+      /* Game Container */
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #1a1a1a;
+        color: white;
+        font-family: Arial, sans-serif;
+      }
+      
+      /* Canvas Styling */
+      canvas {
+        border: 2px solid white;
+        background: black;
+        max-width: 100%;
+        touch-action: none;
+      }
+      
+      /* Game Controls */
+      button {
+        padding: 15px 30px;
+        font-size: 20px;
+        margin: 10px;
+        cursor: pointer;
+        background: #4CAF50;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        touch-action: manipulation;
+      }
+      
+      /* Game Over Screen */
+      #gameOver {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;         /* Full width */
+        height: 100vh;        /* Full height */
+        background: rgba(0, 0, 0, 0.9); /* Dark overlay */
+        display: none;        /* Hidden by default */
+        z-index: 100;
+        /* Flex layout for centering text */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        /* Optional: some padding or styling for text */
+        color: white;
+        border-radius: 0;     /* Remove corner rounding if you like */
+      }
+      
+      /* Score Display */
+      #scorePanel {
+        font-size: 18px;
+        margin: 10px 0;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Space Dodge!</h1>
-    <div id="scorePanel">High Score: <span id="highScore">0</span> | Score: <span id="score">0</span></div>
+    <div id="scorePanel">
+      High Score: <span id="highScore">0</span> | Score: <span id="score">0</span>
+    </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <button id="startButton">Start Game</button>
     
     <div id="gameOver">
-        <h2>GAME OVER!</h2>
-        <p>Final Score: <span id="finalScore">0</span></p>
-        <p>High Score: <span id="finalHighScore">0</span></p>
-        <button id="restartButton">Play Again</button>
+      <h2>GAME OVER!</h2>
+      <p>Final Score: <span id="finalScore">0</span></p>
+      <p>High Score: <span id="finalHighScore">0</span></p>
+      <button id="restartButton">Play Again</button>
     </div>
-
+    
     <!-- Audio Elements -->
     <audio id="explosionSound" src="assets/sounds/explosion-42132.wav"></audio>
     <audio id="backgroundMusic" loop src="assets/sounds/that-game-arcade-236111.mp3"></audio>
-
+    
     <script>
-        // Game Configuration
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const startButton = document.getElementById('startButton');
-        const restartButton = document.getElementById('restartButton');
-        const gameOverDiv = document.getElementById('gameOver');
-        const scoreElement = document.getElementById('score');
-        const highScoreElement = document.getElementById('highScore');
-
-        // Touch Handling Variables
-        let touchStartX = null;
-        let touchOffsetX = 0;
-
-        // Game Assets
-        const assets = {
-            player: new Image(),
-            meteor: new Image()
-        };
-
-        // Load Assets
-        assets.player.src = 'assets/images/cartoon.png';
-        assets.meteor.src = 'assets/images/ball.png';
-
-        // Game State
-        let score = 0;
-        let highScore = localStorage.getItem('highScore') || 0;
-        let gameOver = false;
-        let animationFrame;
-        
-        // Game Constants
-        const BLOCK_SIZE = 60;
-        const PLAYER_SIZE = 50;
-        const BLOCK_SPAWN_RATE = 0.97;
-        const PLAYER_SPEED = 7;
-
-        // Player Object
-        const player = {
-
-            x: canvas.width/2 - PLAYER_SIZE/2,
-            y: canvas.height - 100,
-            width: PLAYER_SIZE,
-            height: PLAYER_SIZE
-        };
-
-        // Blocks Array
-        let blocks = [];
-
-        // Input Handling
-        const keys = {
-            ArrowLeft: false,
-            ArrowRight: false,
-            ArrowUp: false,
-            ArrowDown: false
-        };
-
-        // Event Listeners
-        function setupEventListeners() {
-            // Keyboard Events
-            document.addEventListener('keydown', handleKeyDown);
-            document.addEventListener('keyup', handleKeyUp);
-
-            // Touch Events
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('touchend', handleTouchEnd);
-
-            // Button Events
-            startButton.addEventListener('click', initializeGame);
-            restartButton.addEventListener('click', restartGame);
+      // Game Configuration
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const startButton = document.getElementById('startButton');
+      const restartButton = document.getElementById('restartButton');
+      const gameOverDiv = document.getElementById('gameOver');
+      const scoreElement = document.getElementById('score');
+      const highScoreElement = document.getElementById('highScore');
+      
+      // Touch Handling Variables
+      let touchStartX = null;
+      let touchStartY = null;
+      let touchOffsetX = 0;
+      let touchOffsetY = 0;
+      
+      // Game Assets
+      const assets = {
+        player: new Image(),
+        meteor: new Image()
+      };
+      
+      // Load Assets
+      assets.player.src = 'assets/images/cartoon.png';
+      assets.meteor.src = 'assets/images/ball.png';
+      
+      // Game State
+      let score = 0;
+      let highScore = localStorage.getItem('highScore') || 0;
+      let gameOver = false;
+      let animationFrame;
+      
+      // Game Constants
+      const BLOCK_SIZE = 60;
+      const PLAYER_SIZE = 50;
+      const BLOCK_SPAWN_RATE = 0.97; // Lower value means more frequent spawns.
+      const PLAYER_SPEED = 7;
+      
+      // Player Object
+      const player = {
+        x: canvas.width / 2 - PLAYER_SIZE / 2,
+        y: canvas.height - 100,
+        width: PLAYER_SIZE,
+        height: PLAYER_SIZE
+      };
+      
+      // Blocks Array
+      let blocks = [];
+      
+      // Input Handling
+      const keys = {
+        ArrowLeft: false,
+        ArrowRight: false,
+        ArrowUp: false,
+        ArrowDown: false
+      };
+      
+      // Event Listeners
+      function setupEventListeners() {
+        // Keyboard Events
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+      
+        // Touch Events
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', handleTouchEnd);
+      
+        // Button Events
+        startButton.addEventListener('click', initializeGame);
+        restartButton.addEventListener('click', restartGame);
+      }
+      
+      // Touch Handlers
+      function handleTouchStart(e) {
+        e.preventDefault();
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchOffsetX = player.x;
+        touchOffsetY = player.y;
+      }
+      
+      function handleTouchMove(e) {
+        e.preventDefault();
+        if (touchStartX !== null && touchStartY !== null) {
+          const touchX = e.touches[0].clientX;
+          const touchY = e.touches[0].clientY;
+      
+          // Calculate new positions based on swipe distance
+          const moveX = touchOffsetX + (touchX - touchStartX);
+          const moveY = touchOffsetY + (touchY - touchStartY);
+      
+          // Bound the player in both X and Y directions
+          player.x = Math.max(0, Math.min(canvas.width - player.width, moveX));
+          player.y = Math.max(0, Math.min(canvas.height - player.height, moveY));
         }
-
-        // Touch Handlers
-        function handleTouchStart(e) {
-            e.preventDefault();
-            touchStartX = e.touches[0].clientX;
-            touchOffsetX = player.x;
+      }
+      
+      function handleTouchEnd() {
+        touchStartX = null;
+        touchStartY = null;
+      }
+      
+      // Keyboard Handlers
+      function handleKeyDown(e) {
+        e.preventDefault();
+        switch (e.code) {
+          case "ArrowLeft":
+            keys.ArrowLeft = true;
+            break;
+          case "ArrowRight":
+            keys.ArrowRight = true;
+            break;
+          case "ArrowUp":
+            keys.ArrowUp = true;
+            break;
+          case "ArrowDown":
+            keys.ArrowDown = true;
+            break;
         }
-
-        function handleTouchMove(e) {
-            e.preventDefault();
-            if (touchStartX !== null) {
-                const touchX = e.touches[0].clientX;
-                const moveX = touchOffsetX + (touchX - touchStartX);
-                player.x = Math.max(0, Math.min(canvas.width - player.width, moveX));
-            }
+      }
+      
+      function handleKeyUp(e) {
+        e.preventDefault();
+        switch (e.code) {
+          case "ArrowLeft":
+            keys.ArrowLeft = false;
+            break;
+          case "ArrowRight":
+            keys.ArrowRight = false;
+            break;
+          case "ArrowUp":
+            keys.ArrowUp = false;
+            break;
+          case "ArrowDown":
+            keys.ArrowDown = false;
+            break;
         }
-
-        function handleTouchEnd() {
-            touchStartX = null;
+      }
+      
+      // Game Functions
+      function initializeGame() {
+        resetGameState();
+        gameOverDiv.style.display = 'none';
+        startButton.style.display = 'none';
+        playSound('backgroundMusic');
+        gameLoop();
+      }
+      
+      function resetGameState() {
+        score = 0;
+        gameOver = false;
+        blocks = [];
+        player.x = canvas.width / 2 - PLAYER_SIZE / 2;
+        player.y = canvas.height - 100;
+        updateScoreDisplay();
+      }
+      
+      function updatePlayerPosition() {
+        if (keys.ArrowLeft) {
+          player.x = Math.max(0, player.x - PLAYER_SPEED);
         }
-
-        // Keyboard Handlers
-        function handleKeyDown(e) {
-            if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        if (keys.ArrowRight) {
+          player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
         }
-
-        function handleKeyUp(e) {
-            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        if (keys.ArrowUp) {
+          player.y = Math.max(0, player.y - PLAYER_SPEED);
         }
-
-        // Game Functions
-        function initializeGame() {
-            resetGameState();
-            gameOverDiv.style.display = 'none';
-            startButton.style.display = 'none';
-            playSound('backgroundMusic');
-            gameLoop();
+        if (keys.ArrowDown) {
+          player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
         }
-
-        function resetGameState() {
-            score = 0;
-            gameOver = false;
-            blocks = [];
-            player.x = canvas.width/2 - PLAYER_SIZE/2;
+      }
+      
+      function gameLoop() {
+        if (gameOver) return;
+      
+        updatePlayerPosition();
+        updateBlocks();
+        checkCollisions();
+      
+        // Increment score based on survival time
+        score++;
+        updateScoreDisplay();
+      
+        render();
+        animationFrame = requestAnimationFrame(gameLoop);
+      }
+      
+      function updateBlocks() {
+        // Spawn new blocks
+        if (Math.random() > BLOCK_SPAWN_RATE) {
+          blocks.push({
+            x: Math.random() * (canvas.width - BLOCK_SIZE),
+            y: 0,
+            width: BLOCK_SIZE,
+            height: BLOCK_SIZE
+          });
+        }
+      
+        // Move blocks and remove off-screen blocks
+        blocks = blocks.filter(block => {
+          block.y += 4;
+          if (block.y > canvas.height) {
+            score++;
             updateScoreDisplay();
+            return false;
+          }
+          return true;
+        });
+      }
+      
+      function checkCollisions() {
+        blocks.forEach(block => {
+          if (isColliding(player, block)) {
+            endGame();
+          }
+        });
+      }
+      
+      function isColliding(rect1, rect2) {
+        return rect1.x < rect2.x + rect2.width &&
+               rect1.x + rect1.width > rect2.x &&
+               rect1.y < rect2.y + rect2.height &&
+               rect1.y + rect1.height > rect2.y;
+      }
+      
+      function render() {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(assets.player, player.x, player.y, player.width, player.height);
+        blocks.forEach(block => {
+          ctx.drawImage(assets.meteor, block.x, block.y, block.width, block.height);
+        });
+      }
+      
+      function endGame() {
+        gameOver = true;
+        cancelAnimationFrame(animationFrame);
+        document.getElementById('backgroundMusic').pause();
+        playSound('explosionSound');
+      
+        // Remove meteors from the screen
+        blocks = [];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+        // Update High Score
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
         }
-
-        function updatePlayerPosition() {
-            // Left
-            if (keys.ArrowLeft) {
-                player.x = Math.max(0, player.x - PLAYER_SPEED);
-            }
-            // Right
-            if (keys.ArrowRight) {
-                player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
-            }
-            // Up
-            if (keys.ArrowUp) {
-                player.y = Math.max(0, player.y - PLAYER_SPEED);
-            }
-            // Down
-            if (keys.ArrowDown) {
-                player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
-            }
-        }
-
-        function gameLoop() {
-            if (gameOver) return;
-
-            // Update Game State
-            updatePlayerPosition();
-            updateBlocks();
-            checkCollisions();
-
-            // Render Frame
-            render();
-
-            animationFrame = requestAnimationFrame(gameLoop);
-        }
-
-        function updateBlocks() {
-            // Spawn new blocks
-            if (Math.random() > BLOCK_SPAWN_RATE) {
-                blocks.push({
-                    x: Math.random() * (canvas.width - BLOCK_SIZE),
-                    y: 0,
-                    width: BLOCK_SIZE,
-                    height: BLOCK_SIZE
-                });
-            }
-
-            // Update existing blocks
-            blocks = blocks.filter(block => {
-                block.y += 4;
-                return block.y <= canvas.height;
-            });
-        }
-
-        function checkCollisions() {
-            blocks.forEach(block => {
-                if (isColliding(player, block)) {
-                    endGame();
-                }
-            });
-        }
-
-        function isColliding(rect1, rect2) {
-            return rect1.x < rect2.x + rect2.width &&
-                   rect1.x + rect1.width > rect2.x &&
-                   rect1.y < rect2.y + rect2.height &&
-                   rect1.y + rect1.height > rect2.y;
-        }
-
-        function render() {
-            // Clear Canvas
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw Player
-            ctx.drawImage(assets.player, player.x, player.y, player.width, player.height);
-
-            // Draw Blocks
-            blocks.forEach(block => {
-                ctx.drawImage(assets.meteor, block.x, block.y, block.width, block.height);
-            });
-        }
-
-        function endGame() {
-            gameOver = true;
-            cancelAnimationFrame(animationFrame);
-            document.getElementById('backgroundMusic').pause();
-            playSound('explosionSound');
-
-            // Update High Score
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('highScore', highScore);
-            }
-
-            // Show Game Over Screen
-            gameOverDiv.style.display = 'block';
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('finalHighScore').textContent = highScore;
-        }
-
-        function restartGame() {
-            gameOverDiv.style.display = 'none';
-            initializeGame();
-        }
-
-        function playSound(id) {
-            const sound = document.getElementById(id);
-            sound.currentTime = 0;
-            sound.play();
-        }
-
-        function updateScoreDisplay() {
-            scoreElement.textContent = score;
-            highScoreElement.textContent = highScore;
-        }
-
-        // Initialize Game
-        setupEventListeners();
+      
+        // Show Game Over Screen
+        gameOverDiv.style.display = 'flex'; // If using the new flex CSS
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('finalHighScore').textContent = highScore;
+      }
+      
+      function restartGame() {
+        gameOverDiv.style.display = 'none';
+        startButton.style.display = 'none';
+        initializeGame();
+      }
+      
+      function playSound(id) {
+        const sound = document.getElementById(id);
+        sound.currentTime = 0;
+        sound.play();
+      }
+      
+      function updateScoreDisplay() {
+        scoreElement.textContent = score;
         highScoreElement.textContent = highScore;
+      }
+      
+      // Initialize Game
+      setupEventListeners();
+      highScoreElement.textContent = highScore;
+
+      const PORT = process.env.PORT || 8080;
+      app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+
     </script>
-</body>
+  </body>
 </html>
