@@ -279,26 +279,15 @@
       }
       
       function updateBlocks() {
-        // Spawn new blocks
-        if (Math.random() > BLOCK_SPAWN_RATE) {
-          blocks.push({
-            x: Math.random() * (canvas.width - BLOCK_SIZE),
-            y: 0,
-            width: BLOCK_SIZE,
-            height: BLOCK_SIZE
-          });
-        }
-      
-        // Move blocks and remove off-screen blocks
-        blocks = blocks.filter(block => {
-          block.y += 4;
-          if (block.y > canvas.height) {
-            score++;
-            updateScoreDisplay();
-            return false;
+        for (let i = 0; i < blocks.length; i++) {
+          blocks[i].y += blockSpeed;
+
+          if (blocks[i].y > canvas.height) {
+            score++;   // ✅ Increase score only when asteroid goes out
+            blocks.splice(i, 1);  // Remove asteroid from array
+            i--;
           }
-          return true;
-        });
+        }
       }
       
       function checkCollisions() {
@@ -368,10 +357,7 @@
       setupEventListeners();
       highScoreElement.textContent = highScore;
 
-      const PORT = process.env.PORT || 8080;
-      app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+      
 
     </script>
   </body>
