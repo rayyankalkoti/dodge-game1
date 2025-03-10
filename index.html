@@ -290,7 +290,7 @@
       
         // Move blocks and remove off-screen blocks
         blocks = blocks.filter(block => {
-          block.y += 1;
+          block.y += 2;
           if (block.y > canvas.height) {
             return false;
           }
