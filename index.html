@@ -78,6 +78,8 @@
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <button id="startButton">Start Game</button>
+    <button id="resetHighScore">Reset High Score</button>
+
     
     <div id="gameOver">
       <h2>GAME OVER!</h2>
@@ -85,6 +87,10 @@
       <p>High Score: <span id="finalHighScore">0</span></p>
       <button id="restartButton">Play Again</button>
     </div>
+
+
+    <div id="notification" style="display: none; position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 10px 15px; border-radius: 5px; z-index: 200;"></div>
+
     
     <!-- Audio Elements -->
     <audio id="explosionSound" src="assets/sounds/explosion-42132.wav"></audio>
@@ -95,6 +101,7 @@
       const canvas = document.getElementById('gameCanvas');
       const ctx = canvas.getContext('2d');
       const startButton = document.getElementById('startButton');
+      const resetHighScoreButton = document.getElementById('resetHighScore');
       const restartButton = document.getElementById('restartButton');
       const gameOverDiv = document.getElementById('gameOver');
       const scoreElement = document.getElementById('score');
@@ -333,10 +340,28 @@
           livesPanel.innerHTML += "❤️";
         }
       }
-      
+
+      //update this function anywhere
+      function resetHighScore() {
+        localStorage.removeItem('highScore');
+        highScore = 0;
+        updateScoreDisplay();
+        const notification = document.getElementById('notification');
+        notification.innerText = "High Score has been reset!";
+        notification.style.display = 'block';
+  
+        // Hide the notification after 2 seconds
+        setTimeout(() => {
+          notification.style.display = 'none';
+        }, 2000);
+      }
+  
+        
       // Initialize Game
       setupEventListeners();
       highScoreElement.textContent = highScore;
+      resetHighScoreButton.addEventListener('click', resetHighScore);
+
     </script>
   </body>
 </html>
