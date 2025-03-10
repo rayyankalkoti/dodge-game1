@@ -120,6 +120,7 @@
 
         // Player Object
         const player = {
+
             x: canvas.width/2 - PLAYER_SIZE/2,
             y: canvas.height - 100,
             width: PLAYER_SIZE,
@@ -132,7 +133,9 @@
         // Input Handling
         const keys = {
             ArrowLeft: false,
-            ArrowRight: false
+            ArrowRight: false,
+            ArrowUp: false,
+            ArrowDown: false
         };
 
         // Event Listeners
@@ -200,6 +203,9 @@
         function updatePlayerPosition() {
             if (keys.ArrowLeft) player.x = Math.max(0, player.x - PLAYER_SPEED);
             if (keys.ArrowRight) player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
+            // Vertical movement (Add these lines)
+            if (keys.ArrowUp) player.y = Math.max(0, player.y - PLAYER_SPEED);
+            if (keys.ArrowDown) player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
         }
 
         function gameLoop() {
