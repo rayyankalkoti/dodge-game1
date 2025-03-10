@@ -73,13 +73,13 @@
     <h1>Space Dodge!</h1>
     <!-- Lives Display -->
     <div id="livesPanel"></div>
+    <!-- Score Display -->
     <div id="scorePanel">
       High Score: <span id="highScore">0</span> | Score: <span id="score">0</span>
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <button id="startButton">Start Game</button>
     <button id="resetHighScore">Reset High Score</button>
-
     
     <div id="gameOver">
       <h2>GAME OVER!</h2>
@@ -87,17 +87,16 @@
       <p>High Score: <span id="finalHighScore">0</span></p>
       <button id="restartButton">Play Again</button>
     </div>
-
-
+    
+    <!-- Notification Popup -->
     <div id="notification" style="display: none; position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 10px 15px; border-radius: 5px; z-index: 200;"></div>
-
     
     <!-- Audio Elements -->
     <audio id="explosionSound" src="assets/sounds/explosion-42132.wav"></audio>
     <audio id="backgroundMusic" loop src="assets/sounds/that-game-arcade-236111.mp3"></audio>
     
     <script>
-      // Game Configuration & Global Variables
+      // Global Variables & Configuration
       const canvas = document.getElementById('gameCanvas');
       const ctx = canvas.getContext('2d');
       const startButton = document.getElementById('startButton');
@@ -145,7 +144,7 @@
       assets.player.src = 'assets/images/cartoon.png';
       assets.meteor.src = 'assets/images/ball.png';
       
-      // Event Listeners
+      // Event Listeners Setup
       function setupEventListeners() {
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('keyup', handleKeyUp);
@@ -154,6 +153,7 @@
         canvas.addEventListener('touchend', handleTouchEnd);
         startButton.addEventListener('click', initializeGame);
         restartButton.addEventListener('click', restartGame);
+        resetHighScoreButton.addEventListener('click', resetHighScore);
       }
       
       // Touch Handlers
@@ -211,6 +211,8 @@
       }
       
       // Game Functions
+      
+      // Initialize game: reset state, hide gameOver, and start game loop
       function initializeGame() {
         resetGameState();
         gameOverDiv.style.display = 'none';
@@ -219,9 +221,10 @@
         gameLoop();
       }
       
+      // Reset game state: score, lives, blocks, player position, update displays
       function resetGameState() {
         score = 0;
-        lives = 3; // Reset lives to 3
+        lives = 3;
         gameOver = false;
         blocks = [];
         player.x = canvas.width / 2 - PLAYER_SIZE / 2;
@@ -230,6 +233,7 @@
         updateLivesDisplay();
       }
       
+      // Update player position based on pressed keys
       function updatePlayerPosition() {
         if (keys.ArrowLeft) player.x = Math.max(0, player.x - PLAYER_SPEED);
         if (keys.ArrowRight) player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
@@ -237,6 +241,7 @@
         if (keys.ArrowDown) player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
       }
       
+      // Main game loop: update positions, check collisions, render frame, and request next frame
       function gameLoop() {
         if (gameOver) return;
         updatePlayerPosition();
@@ -246,8 +251,8 @@
         animationFrame = requestAnimationFrame(gameLoop);
       }
       
+      // Update blocks: spawn new ones, move them, and remove those off-screen (increment score)
       function updateBlocks() {
-        // Spawn new blocks
         if (Math.random() > BLOCK_SPAWN_RATE) {
           blocks.push({
             x: Math.random() * (canvas.width - BLOCK_SIZE),
@@ -256,7 +261,6 @@
             height: BLOCK_SIZE
           });
         }
-        // Move blocks and remove off-screen blocks (increment score for each removed block)
         blocks = blocks.filter(block => {
           block.y += 1;
           if (block.y > canvas.height) {
@@ -268,15 +272,13 @@
         });
       }
       
+      // Check for collisions between the player and blocks
       function checkCollisions() {
         blocks.forEach((block, index) => {
           if (isColliding(player, block)) {
-            // Remove the meteor to prevent repeated collisions
             blocks.splice(index, 1);
-            // Decrement lives and update the UI
             lives--;
             updateLivesDisplay();
-            // End game if no lives remain
             if (lives <= 0) {
               endGame();
             }
@@ -284,6 +286,7 @@
         });
       }
       
+      // Collision detection between two rectangles
       function isColliding(rect1, rect2) {
         return rect1.x < rect2.x + rect2.width &&
                rect1.x + rect1.width > rect2.x &&
@@ -291,6 +294,7 @@
                rect1.y + rect1.height > rect2.y;
       }
       
+      // Render the current game state to the canvas
       function render() {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -300,6 +304,7 @@
         });
       }
       
+      // End the game: stop the game loop, update high score if needed, show gameOver screen
       function endGame() {
         gameOver = true;
         cancelAnimationFrame(animationFrame);
@@ -316,23 +321,27 @@
         document.getElementById('finalHighScore').textContent = highScore;
       }
       
+      // Restart the game (triggered from gameOver screen)
       function restartGame() {
         gameOverDiv.style.display = 'none';
         startButton.style.display = 'none';
         initializeGame();
       }
       
+      // Play sound by resetting its currentTime to 0
       function playSound(id) {
         const sound = document.getElementById(id);
         sound.currentTime = 0;
         sound.play();
       }
       
+      // Update score display in the UI
       function updateScoreDisplay() {
         scoreElement.textContent = score;
         highScoreElement.textContent = highScore;
       }
       
+      // Update lives display (using heart emoji)
       function updateLivesDisplay() {
         const livesPanel = document.getElementById('livesPanel');
         livesPanel.innerHTML = "";
@@ -340,8 +349,8 @@
           livesPanel.innerHTML += "❤️";
         }
       }
-
-      //update this function anywhere
+      
+      // Reset High Score function with non-blocking notification
       function resetHighScore() {
         localStorage.removeItem('highScore');
         highScore = 0;
@@ -349,19 +358,14 @@
         const notification = document.getElementById('notification');
         notification.innerText = "High Score has been reset!";
         notification.style.display = 'block';
-  
-        // Hide the notification after 2 seconds
         setTimeout(() => {
           notification.style.display = 'none';
         }, 2000);
       }
-  
-        
-      // Initialize Game
+      
+      // Initialize game by setting up event listeners and displaying the high score
       setupEventListeners();
       highScoreElement.textContent = highScore;
-      resetHighScoreButton.addEventListener('click', resetHighScore);
-
     </script>
   </body>
 </html>
