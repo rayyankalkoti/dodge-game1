@@ -334,9 +334,11 @@
       // Restart the game (triggered from gameOver screen)
       function restartGame() {
         gameOverDiv.style.display = 'none';
-        
-        initializeGame();
+        resetGameState();
+        startButton.style.display = 'block'; // Show Start Game button for manual restart
       }
+
+      
       
       // Play sound by resetting its currentTime to 0
       function playSound(id) {
