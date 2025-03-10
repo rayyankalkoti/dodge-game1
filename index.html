@@ -44,6 +44,14 @@
         touch-action: manipulation;
       }
       
+      /* Smaller Reset High Score Button */
+      #resetHighScore {
+        padding: 5px 10px;
+        font-size: 14px;
+        margin: 5px;
+        background: #f44336; /* red background */
+      }
+      
       /* Game Over Screen */
       #gameOver {
         position: fixed;
@@ -108,7 +116,7 @@
       
       let score = 0;
       let highScore = localStorage.getItem('highScore') || 0;
-      let lives = 5; // Set player lives to 3
+      let lives = 5; // Set player lives to 8
       let gameOver = false;
       let animationFrame;
       
@@ -350,7 +358,7 @@
         }
       }
       
-      // Reset High Score function with non-blocking notification
+      // Reset High Score function with non-blocking notification popup
       function resetHighScore() {
         localStorage.removeItem('highScore');
         highScore = 0;
