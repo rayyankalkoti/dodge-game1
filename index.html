@@ -292,6 +292,8 @@
         blocks = blocks.filter(block => {
           block.y += 4;
           if (block.y > canvas.height) {
+            score++;               // Increment score by 1 for this block
+            updateScoreDisplay();
             return false;
           }
           return true;
