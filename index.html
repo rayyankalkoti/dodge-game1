@@ -73,6 +73,7 @@
   </head>
   <body>
     <h1>Space Dodge!</h1>
+    <div id="livesPanel"></div>
     <div id="scorePanel">
       High Score: <span id="highScore">0</span> | Score: <span id="score">0</span>
     </div>
@@ -287,26 +288,59 @@
             height: BLOCK_SIZE
           });
         }
-      
         // Move blocks and remove off-screen blocks
         blocks = blocks.filter(block => {
-          block.y += 4;
+          block.y += 1;
           if (block.y > canvas.height) {
             score++;               // Increment score by 1 for this block
             updateScoreDisplay();
+            
             return false;
           }
           return true;
         });
       }
+
+      function updateLivesDisplay() {
+        const livesPanel = document.getElementById('livesPanel');
+        livesPanel.innerHTML = ""; // Clear previous hearts
+        for (let i = 0; i < lives; i++) {
+          // You can also use an <img> tag if you have a heart image
+          livesPanel.innerHTML += "❤️";  
+        }
+      }
+      
       
       function checkCollisions() {
-        blocks.forEach(block => {
+        blocks.forEach((block, index) => {
           if (isColliding(player, block)) {
-            endGame();
+            // Remove the meteor (so it doesn't hit repeatedly)
+            blocks.splice(index, 1);
+            
+            // Decrement lives and update the UI
+            lives--;
+            updateLivesDisplay();
+            
+            // End game if no lives remain
+            if (lives <= 0) {
+              endGame();
+            }
           }
         });
       }
+
+      function resetGameState() {
+        score = 0;
+        lives = 5; // Reset lives
+        gameOver = false;
+        blocks = [];
+        player.x = canvas.width / 2 - PLAYER_SIZE / 2;
+        player.y = canvas.height - 100;
+        updateScoreDisplay();
+        updateLivesDisplay();  // Update the hearts display
+      }
+      
+      
       
       function isColliding(rect1, rect2) {
         return rect1.x < rect2.x + rect2.width &&
