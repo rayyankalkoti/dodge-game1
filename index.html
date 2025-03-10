@@ -224,7 +224,7 @@
       function initializeGame() {
         resetGameState();
         gameOverDiv.style.display = 'none';
-        startButton.style.display = 'none';
+        
         playSound('backgroundMusic');
         gameLoop();
       }
@@ -332,7 +332,7 @@
       // Restart the game (triggered from gameOver screen)
       function restartGame() {
         gameOverDiv.style.display = 'none';
-        startButton.style.display = 'none';
+        
         initializeGame();
       }
       
