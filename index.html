@@ -146,11 +146,13 @@
       // Game Assets
       const assets = {
         player: new Image(),
-        meteor: new Image()
+        meteor: new Image(),
+        background: new Image()
       };
       // Load Assets (adjust these paths if necessary)
       assets.player.src = 'assets/images/cartoon.png';
       assets.meteor.src = 'assets/images/ball.png';
+      assets.background.src = 'assets/images/background.jpg';
       
       // Event Listeners Setup
       function setupEventListeners() {
@@ -308,6 +310,9 @@
       function render() {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw background image filling the entire canvas
+        ctx.drawImage(assets.background, 0, 0, canvas.width, canvas.height);
+
         ctx.drawImage(assets.player, player.x, player.y, player.width, player.height);
         blocks.forEach(block => {
           ctx.drawImage(assets.meteor, block.x, block.y, block.width, block.height);
