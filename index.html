@@ -147,12 +147,19 @@
       const assets = {
         player: new Image(),
         meteor: new Image(),
-        background: new Image()
+        background: new Image(),
+        backgroundVideo: document.createElement('video')
       };
       // Load Assets (adjust these paths if necessary)
       assets.player.src = 'assets/images/cart.png';
       assets.meteor.src = 'assets/images/ball1.png';
       assets.background.src = 'assets/images/background.jpg';
+
+      // Set up the video asset:
+      assets.backgroundVideo.src = 'assets/videos/background.mp4'; // Update with your video file path
+      assets.backgroundVideo.autoplay = true;
+      assets.backgroundVideo.muted = true;
+      assets.backgroundVideo.loop = true;
       
       // Event Listeners Setup
       function setupEventListeners() {
@@ -310,8 +317,8 @@
       function render() {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        // Draw background image filling the entire canvas
-        ctx.drawImage(assets.background, 0, 0, canvas.width, canvas.height);
+        // Draw the video background covering the entire canvas
+        ctx.drawImage(assets.backgroundVideo, 0, 0, canvas.width, canvas.height);
 
         ctx.drawImage(assets.player, player.x, player.y, player.width, player.height);
         blocks.forEach(block => {
