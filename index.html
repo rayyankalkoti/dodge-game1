@@ -201,11 +201,22 @@
         }
 
         function updatePlayerPosition() {
-            if (keys.ArrowLeft) player.x = Math.max(0, player.x - PLAYER_SPEED);
-            if (keys.ArrowRight) player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
-            // Vertical movement (Add these lines)
-            if (keys.ArrowUp) player.y = Math.max(0, player.y - PLAYER_SPEED);
-            if (keys.ArrowDown) player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
+            // Left
+            if (keys.ArrowLeft) {
+                player.x = Math.max(0, player.x - PLAYER_SPEED);
+            }
+            // Right
+            if (keys.ArrowRight) {
+                player.x = Math.min(canvas.width - player.width, player.x + PLAYER_SPEED);
+            }
+            // Up
+            if (keys.ArrowUp) {
+                player.y = Math.max(0, player.y - PLAYER_SPEED);
+            }
+            // Down
+            if (keys.ArrowDown) {
+                player.y = Math.min(canvas.height - player.height, player.y + PLAYER_SPEED);
+            }
         }
 
         function gameLoop() {
