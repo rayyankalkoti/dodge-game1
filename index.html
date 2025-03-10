@@ -237,6 +237,8 @@
         blocks = [];
         player.x = canvas.width / 2 - PLAYER_SIZE / 2;
         player.y = canvas.height - 100;
+
+        gameOverDiv.style.display = 'none';
         updateScoreDisplay();
         updateLivesDisplay();
       }
@@ -373,7 +375,9 @@
       
       // Initialize game by setting up event listeners and displaying the high score
       setupEventListeners();
+      gameOverDiv.style.display = 'none';
       highScoreElement.textContent = highScore;
+      
     </script>
   </body>
 </html>
